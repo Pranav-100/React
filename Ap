@@ -1,0 +1,33 @@
+import React, { useState } from "react";
+import InsertForm from "./InsertForm";
+import UpdateForm from "./UpdateForm";
+import DeleteForm from "./DeleteForm";
+
+function App() {
+  const [countryCode, setCountryCode] = useState("");
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2>CRUD Operations</h2>
+
+      {/* Country code input */}
+      <div>
+        <label>Enter Country Code: </label>
+        <input
+          type="text"
+          value={countryCode}
+          onChange={(e) => setCountryCode(e.target.value)}
+        />
+      </div>
+
+      <hr />
+
+      {/* Forms */}
+      <InsertForm countryCode={countryCode} />
+      <UpdateForm countryCode={countryCode} />
+      <DeleteForm countryCode={countryCode} />
+    </div>
+  );
+}
+
+export default App;
