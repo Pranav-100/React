@@ -1,0 +1,21 @@
+// api.js
+import axios from "axios";
+
+const API_BASE = "http://localhost:8080/api"; // <-- change this to your backend
+
+export const fetchData = async (countryCode) => {
+  const res = await axios.get(`${API_BASE}/data?country=${countryCode}`);
+  return res.data;
+};
+
+export const insertData = async (payload) => {
+  return axios.post(`${API_BASE}/insert`, payload);
+};
+
+export const updateData = async (payload) => {
+  return axios.put(`${API_BASE}/update`, payload);
+};
+
+export const deleteData = async (id) => {
+  return axios.delete(`${API_BASE}/delete/${id}`);
+};
