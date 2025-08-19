@@ -1,0 +1,191 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios"; // install with `npm install axios`
+
+export default function CrudComponent() {
+  const [countryCode, setCountryCode] = useState("");
+  const [data, setData] = useState([]);
+  const [mode, setMode] = useState("insert"); // insert | update | delete
+  const [rows, setRows] = useState([]);
+  const [selectedId, setSelectedId] = useState("");
+  const [selectedCode, setSelectedCode] = useState("");
+
+  // Fetch data from backend
+  const fetchData = async () => {
+    if (!countryCode) return;
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/data?countryCode=${countryCode}`
+      );
+      setData(response.data); // API should return array of objects
+      setRows([]);
+      setSelectedId("");
+      setSelectedCode("");
+    } catch (error) {
+      console.error("Error fetching data", error);
+    }
+  };
+
+  // When ID selected
+  useEffect(() => {
+    if (selectedId) {
+      const row = data.find((item) => String(item.id) === String(selectedId));
+      if (row) {
+        setRows([row]);
+        setSelectedCode(row.code);
+      }
+    }
+  }, [selectedId]);
+
+  // When Code selected
+  useEffect(() => {
+    if (selectedCode) {
+      const row = data.find((item) => item.code === selectedCode);
+      if (row) {
+        setRows([row]);
+        setSelectedId(row.id);
+      }
+    }
+  }, [selectedCode]);
+
+  // Insert mode add new row
+  const addRow = () => {
+    setRows([
+      ...rows,
+      { id: "", code: "", name: "", displayName: "", isActive: "Y" },
+    ]);
+  };
+
+  // Handle input changes
+  const handleChange = (index, field, value) => {
+    const updated = [...rows];
+    updated[index][field] = value;
+    setRows(updated);
+  };
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2>CRUD with Country Code</h2>
+
+      {/* Step 1: Country code input */}
+      <div>
+        <label>Country Code: </label>
+        <input
+          type="text"
+          value={countryCode}
+          onChange={(e) => setCountryCode(e.target.value)}
+        />
+        <button onClick={fetchData}>Fetch Data</button>
+      </div>
+
+      {/* Step 2: Mode selection */}
+      <div style={{ marginTop: "20px" }}>
+        <button onClick={() => setMode("insert")}>Insert</button>
+        <button onClick={() => setMode("update")}>Update</button>
+        <button onClick={() => setMode("delete")}>Delete</button>
+      </div>
+
+      {/* Step 3: Dropdowns only in update/delete */}
+      {(mode === "update" || mode === "delete") && data.length > 0 && (
+        <div style={{ marginTop: "20px" }}>
+          <label>Select ID: </label>
+          <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
+            <option value="">--Select--</option>
+            {data.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.id}
+              </option>
+            ))}
+          </select>
+
+          <label style={{ marginLeft: "20px" }}>Select Code: </label>
+          <select value={selectedCode} onChange={(e) => setSelectedCode(e.target.value)}>
+            <option value="">--Select--</option>
+            {data.map((d) => (
+              <option key={d.code} value={d.code}>
+                {d.code}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Step 4: Table */}
+      <div style={{ marginTop: "20px" }}>
+        <table border="1" cellPadding="5">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Display Name</th>
+              <th>Active</th>
+              {mode === "insert" && <th>Action</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={i}>
+                <td>
+                  <input
+                    value={row.id}
+                    disabled={mode !== "insert"}
+                    onChange={(e) => handleChange(i, "id", e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    value={row.code}
+                    disabled={mode !== "insert"}
+                    onChange={(e) => handleChange(i, "code", e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    value={row.name}
+                    disabled={mode === "delete"}
+                    onChange={(e) => handleChange(i, "name", e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    value={row.displayName}
+                    disabled={mode === "delete"}
+                    onChange={(e) => handleChange(i, "displayName", e.target.value)}
+                  />
+                </td>
+                <td>
+                  <select
+                    value={row.isActive}
+                    disabled={mode === "delete"}
+                    onChange={(e) => handleChange(i, "isActive", e.target.value)}
+                  >
+                    <option value="Y">Yes</option>
+                    <option value="N">No</option>
+                  </select>
+                </td>
+                {mode === "insert" && (
+                  <td>
+                    <button
+                      onClick={() =>
+                        setRows(rows.filter((_, index) => index !== i))
+                      }
+                    >
+                      Delete
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Insert only: Add row */}
+      {mode === "insert" && (
+        <button onClick={addRow} style={{ marginTop: "10px" }}>
+          Add Row
+        </button>
+      )}
+    </div>
+  );
+}
